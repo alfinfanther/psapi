@@ -26,7 +26,7 @@ func ResponseWithJSON(w http.ResponseWriter, json []byte, code int) {
 
 type Trobosqua struct {
 	Id              bson.ObjectId `json:"id,omitempty" bson:"_id,omitempty"`
-	Ttitle          string        `json:"title"`
+	Title           string        `json:"title"`
 	Category        string        `json:"category"`
 	Image_url       string        `json:"image_url"`
 	Summary_content string        `json:"summary_content"`
