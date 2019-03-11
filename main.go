@@ -58,7 +58,7 @@ func ensureIndex(s *mgo.Session) {
 	c := session.DB("webscrapper").C("trobosqua")
 
 	index := mgo.Index{
-		Key:        []string{"title", "category"},
+		Key:        []string{"id"},
 		Unique:     true,
 		DropDups:   true,
 		Background: true,
