@@ -22,12 +22,9 @@ func ErrorWithJSON(w http.ResponseWriter, message string, code int) {
 	fmt.Fprintf(w, "{message: %q}", message)
 }
 func GetEnv(key string) string {
-
-	if len(os.Args) > 1 && os.Args[1] == "local" {
-		err := godotenv.Load()
-		if err != nil {
-			log.Fatal("Error loading .env file GAAN")
-		}
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file GAAN")
 	}
 	return os.Getenv(key)
 }
