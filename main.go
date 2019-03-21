@@ -7,6 +7,7 @@ import (
 	"psapi/controllers"
 	"psapi/global"
 
+	"github.com/alecthomas/template"
 	ghandlers "github.com/gorilla/handlers"
 	"goji.io"
 	"goji.io/pat"
@@ -24,6 +25,7 @@ func main() {
 	ensureIndex(session)
 
 	router := goji.NewMux()
+	router.HandleFunc(pat.Get("/"), getIndex)
 	router.HandleFunc(pat.Get("/trobosqua"), controllers.AllTrobos(session))
 	router.HandleFunc(pat.Get("/trobosqua/id/:id"), controllers.TrobosById(session))
 	router.HandleFunc(pat.Get("/trobosqua/category/:category"), controllers.TrobosByCategory(session))
@@ -47,4 +49,12 @@ func ensureIndex(s *mgo.Session) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func getIndex(w http.ResponseWriter, r *http.Request) {
+	t, err := template.ParseFiles("./html/index.html")
+	if err != nil {
+		log.Fatal("Error template rendering", err)
+	}
+	t.Execute(w, nil)
 }
