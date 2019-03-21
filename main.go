@@ -13,12 +13,6 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-func ResponseWithJSON(w http.ResponseWriter, json []byte, code int) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(code)
-	w.Write(json)
-}
-
 func main() {
 	session, err := mgo.Dial("localhost:27017")
 	if err != nil {
@@ -33,7 +27,6 @@ func main() {
 	router.HandleFunc(pat.Get("/trobosqua"), controllers.AllTrobos(session))
 	router.HandleFunc(pat.Get("/trobosqua/id/:id"), controllers.TrobosById(session))
 	router.HandleFunc(pat.Get("/trobosqua/category/:category"), controllers.TrobosByCategory(session))
-	// http.ListenAndServe("localhost:8090", mux)
 	log.Fatal(http.ListenAndServe(global.GetEnv("PORT"), ghandlers.LoggingHandler(os.Stdout, router)))
 }
 
