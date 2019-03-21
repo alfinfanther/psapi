@@ -1,51 +1,76 @@
 package controllers
 
 import (
-	"encoding/json"
+	"log"
 	"net/http"
+	"psapi/global"
+	"psapi/structs"
 
-	"github.com/gorilla/context"
-	"github.com/julienschmidt/httprouter"
+	"goji.io/pat"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
-type appContext struct {
-	db *mgo.Database
-}
-type Tea struct {
-	Id       bson.ObjectId `json:"id,omitempty" bson:"_id,omitempty"`
-	Name     string        `json:"name"`
-	Category string        `json:"category"`
-}
+func AllTrobos(s *mgo.Session) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session := s.Copy()
+		defer session.Close()
 
-type TeaResource struct {
-	Data Tea `json:"data"`
-}
+		c := session.DB("webscrapper").C("trobosqua")
 
-type TeaRepo struct {
-	coll *mgo.Collection
-}
-
-func (r *TeaRepo) Find(id string) (TeaResource, error) {
-	result := TeaResource{}
-	err := r.coll.FindId(bson.ObjectIdHex(id)).One(&result.Data)
-	if err != nil {
-		return result, err
+		var trobos []structs.Trobosqua
+		err := c.Find(bson.M{}).All(&trobos)
+		if err != nil {
+			global.ErrorWithJSON(w, "Database error", http.StatusInternalServerError)
+			log.Println("Failed get all trobosqua: ", err)
+			return
+		}
+		global.RespondWithJSON(w, http.StatusOK, trobos)
 	}
-
-	return result, nil
 }
 
-func (c *appContext) TeaHandler(w http.ResponseWriter, r *http.Request) {
-	params := context.Get(r, "params").(httprouter.Params)
-	repo := TeaRepo{c.db.C("teas")}
-	trobos, err := repo.Find(params.ByName("id"))
-	if err != nil {
-		panic(err)
+func TrobosByCategory(s *mgo.Session) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session := s.Copy()
+		defer session.Close()
+
+		category := pat.Param(r, "category")
+		log.Println(category)
+
+		c := session.DB("webscrapper").C("trobosqua")
+
+		var trobos []structs.Trobosqua
+		err := c.Find(bson.M{"category": category}).All(&trobos)
+		log.Println(err)
+		if err != nil {
+			global.ErrorWithJSON(w, "Database error", http.StatusInternalServerError)
+			log.Println("Failed find trobosqua: ", err)
+			return
+		}
+
+		global.RespondWithJSON(w, http.StatusOK, trobos)
 	}
+}
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	json.NewEncoder(w).Encode(trobos)
+func TrobosById(s *mgo.Session) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session := s.Copy()
+		defer session.Close()
 
+		id := pat.Param(r, "id")
+		log.Println(id)
+
+		c := session.DB("webscrapper").C("trobosqua")
+
+		var trobos structs.Trobosqua
+		err := c.FindId(bson.ObjectIdHex(id)).One(&trobos)
+		log.Println(err)
+		if err != nil {
+			global.ErrorWithJSON(w, "Database error", http.StatusInternalServerError)
+			log.Println("Failed find trobosqua: ", err)
+			return
+		}
+
+		global.RespondWithJSON(w, http.StatusOK, trobos)
+	}
 }

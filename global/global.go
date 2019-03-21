@@ -2,6 +2,7 @@ package global
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,16 +11,16 @@ import (
 )
 
 func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
-	response, err := json.Marshal(payload)
-	if err != nil {
-		//panic(err)
-		code = http.StatusInternalServerError
-	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	w.Write(response)
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
+	enc.Encode(payload)
 }
-
+func ErrorWithJSON(w http.ResponseWriter, message string, code int) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(code)
+	fmt.Fprintf(w, "{message: %q}", message)
+}
 func GetEnv(key string) string {
 
 	if len(os.Args) > 1 && os.Args[1] == "local" {
